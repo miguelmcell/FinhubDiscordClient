@@ -1,0 +1,10 @@
+{
+  "dev": {
+    "host": "http://localhost:8080",
+    "finhub_test_status": "/testStatus",
+    "finhub_test_robinhood_status": "/testRobinhoodStatus"
+  },
+  "prod": {
+    "finhub_health_status": "https://?"
+  }
+}
