@@ -45,8 +45,9 @@ async def call_get_request(ctx, url, params={}):
             await ctx.send('Hello anyone there? 👀 👀 👀 [Unable to contact backend]')
         else:
             print(e)
-            await ctx.send('Something really messed up happened check logs')
+            await ctx.send('Unknown exception for API call request, check logs')
     return r
+    
 @bot.event
 async def on_ready():
     print(f'{bot.user.name} has connected to Discord!')
