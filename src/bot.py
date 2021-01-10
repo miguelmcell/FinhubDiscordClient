@@ -16,7 +16,10 @@ intents = discord.Intents.default()
 intents.typing = False
 intents.presences = False
 intents.members = True
-bot = commands.Bot(command_prefix='!', intents =intents)
+help_command = commands.DefaultHelpCommand(
+    no_category = 'Commands'
+)
+bot = commands.Bot(command_prefix='!', intents =intents, help_command = help_command)
 
 def setup_init():
     ### Loading endpoints file
@@ -69,7 +72,7 @@ async def call_post_request(ctx, url, data={}):
 async def on_ready():
     print(f'{bot.user.name} has connected to Discord!')
 
-@bot.command(name='health', help='Provides status of finhub backend')
+@bot.command(name='health', help='[SERVER ONLY] Provides status of finhub backend')
 async def check_health(ctx):
     if is_dm(ctx):
         await ctx.send('cant call this command in DM')
@@ -84,7 +87,7 @@ async def check_health(ctx):
     else:
         await ctx.send('Unexpected response from finhub status')
 
-@bot.command(name='signUp', help='Signs up the user to the server\'s finhub group')
+@bot.command(name='signUp', help='[SERVER ONLY] Signs up the user to the server\'s finhub group')
 async def signup_user(ctx):
     if is_dm(ctx):
         await ctx.send('cant call this command in DM')
@@ -107,12 +110,20 @@ async def signup_user(ctx):
         await ctx.send('{} is already in **{}**\'s finhub group 🤷'.format(ctx.message.author.name, ctx.message.guild.name))
     elif 'OK' in r.content.decode('utf-8'):
         print('Succesfully signed up {}'.format(ctx.message.author.name))
-        await ctx.send('Successfully signed up {} to **{}**\'s finhub group 🎉 💯 🗣️'.format(ctx.message.author.name, ctx.message.guild.name))
+        await ctx.message.author.create_dm()
+        await ctx.message.author.dm_channel.send(f'Yo, if this is your first'\
+            ' time signing up for a finhub account type `!help` in this DM to'\
+            ' learn how to sync your brokers into your account.\nIf you\'ve'\
+            ' already configured your brokers for another discord server that'\
+            ' uses finhub then you\'re already set\n**I recommend deleteting'\
+            ' your sensitive broker credentials once your broker account'\
+            ' has synced**')
+        await ctx.send('Successfully signed up {} to **{}**\'s finhub group 🎉 💯 🗣️\nI DMd you instructions on how to configure your brokers on your account'.format(ctx.message.author.name, ctx.message.guild.name))
     else:
         print('Unkown response from signup: {}, {}'.format(r, r.content.decode('utf-8')))
 
 
-@bot.command(name='listUsers', help='Lists all active finhub users within server')
+@bot.command(name='listUsers', help='[SERVER ONLY] Lists all active finhub users within server')
 async def list_users(ctx):
     if is_dm(ctx):
         await ctx.send('cant call this command in DM')
