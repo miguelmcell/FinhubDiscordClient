@@ -3,6 +3,7 @@ import json
 import requests
 from discord.ext import commands
 from dotenv import load_dotenv
+import discord
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
@@ -11,7 +12,11 @@ ENVIRONMENT = os.getenv('ENVIRONMENT')
 ENDPOINTS = {}
 endpoints_path = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))),'resources','endpoints.json')
 
-bot = commands.Bot(command_prefix='!')
+intents = discord.Intents.default()
+intents.typing = False
+intents.presences = False
+intents.members = True
+bot = commands.Bot(command_prefix='!', intents =intents)
 
 def setup_init():
     ### Loading endpoints file
@@ -36,10 +41,10 @@ async def handle_api_response(ctx, r):
         print('Other: response code:', r.status_code)
     return None
 ### Run get request while handling errors
-async def call_get_request(ctx, url, params={}):
+async def call_get_request(ctx, url, params={}, headers={}):
     r = None
     try:
-        r = requests.get(url = url, params = params)
+        r = requests.get(url = url, params = params, headers=headers)
     except Exception as e:
         if 'Max retries exceeded with url' in str(e):
             await ctx.send('Hello anyone there? 👀 👀 👀 [Unable to contact backend]')
@@ -86,9 +91,7 @@ async def signup_user(ctx):
         return
     url = ENDPOINTS[ENVIRONMENT]['host']+ENDPOINTS[ENVIRONMENT]['finhub_signup_user']
     data = {}
-    # print(ctx.message.author.id)
-    # print(ctx.message.guild.id)
-    # print(ctx.message.guild.name)
+
     data['discordId'] = ctx.message.author.id
     data['guildId'] = ctx.message.guild.id
     data['guildName'] = ctx.message.guild.name
@@ -115,11 +118,23 @@ async def list_users(ctx):
         await ctx.send('cant call this command in DM')
         return
     url = ENDPOINTS[ENVIRONMENT]['host']+ENDPOINTS[ENVIRONMENT]['finhub_list_users']
-    r = await call_get_request(ctx, url)
+    headers = {"guildId": str(ctx.message.guild.id)}
+    r = await call_get_request(ctx, url, headers=headers)
     if await handle_api_response(ctx, r) is None:
         return
     ### r should now be a valid response
-    print('Success!', r.json())
+    r = r.json()
+    if len(r) == 0:
+        await ctx.send('No active finhub members in **{}** 😔'.format(ctx.message.guild.name))
+        return
+    # Map IDs to user names
+    guild_members = {}
+    for member in  ctx.guild.members:
+        guild_members[str(member.id)] = member.name
+    response = 'Active finhub members in **{}**:'.format(ctx.message.guild.name)
+    for i in r:
+        response = response + '\n\t• {}'.format(guild_members[i.strip('\'')])
+    await ctx.send(response)
 
 setup_init()
 bot.run(TOKEN)

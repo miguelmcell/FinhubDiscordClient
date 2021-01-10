@@ -2,7 +2,7 @@
   "dev": {
     "host": "http://localhost:8080",
     "finhub_test_status": "/testStatus",
-    "finhub_list_users": "/getCurUsersInServer",
+    "finhub_list_users": "/getActiveUsersInServer",
     "finhub_signup_user": "/discord/signUp"
   },
   "prod": {
