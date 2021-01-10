@@ -3,7 +3,11 @@
     "host": "http://localhost:8080",
     "finhub_test_status": "/testStatus",
     "finhub_list_users": "/getActiveUsersInServer",
-    "finhub_signup_user": "/discord/signUp"
+    "finhub_get_user": "/discord/getUser",
+    "finhub_signup_user": "/discord/signUp",
+    "webull": {
+      "send_mfa": "/webull/sendMfa"
+    }
   },
   "prod": {
     "finhub_health_status": "https://?"

@@ -1,9 +1,10 @@
 import os
 import json
-import requests
 from discord.ext import commands
 from dotenv import load_dotenv
 import discord
+from brokers import Brokers
+from apiUtil import call_get_request,call_post_request,handle_api_response
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
@@ -17,9 +18,11 @@ intents.typing = False
 intents.presences = False
 intents.members = True
 help_command = commands.DefaultHelpCommand(
-    no_category = 'Commands'
+    no_category = 'Main Commands'
 )
-bot = commands.Bot(command_prefix='!', intents =intents, help_command = help_command)
+bot = commands.Bot(command_prefix='!', help_command=help_command, intents =intents, description='Finhub Discord Client')
+if __name__ == '__main__':
+    bot.add_cog(Brokers(bot))
 
 def setup_init():
     ### Loading endpoints file
@@ -30,53 +33,14 @@ def setup_init():
 
 def is_dm(ctx):
     return not ctx.message.guild
-### Check and handle any non-200 responses
-async def handle_api_response(ctx, r):
-    if r is None:
-        print('couldnt contact server')
-    if r.status_code == 200:
-        return r
-    elif r.status_code == 401:
-        print('[401] Unauthorized request:', r)
-        await ctx.send('[401] Unauthorized request 🔒')
-    else:
-        print(r)
-        print('Other: response code:', r.status_code)
-    return None
-### Run get request while handling errors
-async def call_get_request(ctx, url, params={}, headers={}):
-    r = None
-    try:
-        r = requests.get(url = url, params = params, headers=headers)
-    except Exception as e:
-        if 'Max retries exceeded with url' in str(e):
-            await ctx.send('Hello anyone there? 👀 👀 👀 [Unable to contact backend]')
-        else:
-            print(e)
-            await ctx.send('Unknown exception for API call request, check logs')
-    return r
-### Run get request while handling errors
-async def call_post_request(ctx, url, data={}):
-    r = None
-    try:
-        r = requests.post(url = url, json = data)
-    except Exception as e:
-        if 'Max retries exceeded with url' in str(e):
-            await ctx.send('Hello anyone there? 👀 👀 👀 [Unable to contact backend]')
-        else:
-            print(e)
-            await ctx.send('Unknown exception for API post request, check logs')
-    return r
 
 @bot.event
 async def on_ready():
     print(f'{bot.user.name} has connected to Discord!')
 
-@bot.command(name='health', help='[SERVER ONLY] Provides status of finhub backend')
+@bot.command(name='health', help='Provides status of finhub backend')
+@commands.guild_only()
 async def check_health(ctx):
-    if is_dm(ctx):
-        await ctx.send('cant call this command in DM')
-        return
     url = ENDPOINTS[ENVIRONMENT]['host']+ENDPOINTS[ENVIRONMENT]['finhub_test_status']
     r = await call_get_request(ctx, url)
     if await handle_api_response(ctx, r) is None:
@@ -87,11 +51,9 @@ async def check_health(ctx):
     else:
         await ctx.send('Unexpected response from finhub status')
 
-@bot.command(name='signUp', help='[SERVER ONLY] Signs up the user to the server\'s finhub group')
+@bot.command(name='signUp', help='Signs up the user to the server\'s finhub group', aliases=['register, signup'])
+@commands.guild_only()
 async def signup_user(ctx):
-    if is_dm(ctx):
-        await ctx.send('cant call this command in DM')
-        return
     url = ENDPOINTS[ENVIRONMENT]['host']+ENDPOINTS[ENVIRONMENT]['finhub_signup_user']
     data = {}
 
@@ -123,11 +85,9 @@ async def signup_user(ctx):
         print('Unkown response from signup: {}, {}'.format(r, r.content.decode('utf-8')))
 
 
-@bot.command(name='listUsers', help='[SERVER ONLY] Lists all active finhub users within server')
+@bot.command(name='listUsers', help='Lists all active finhub users within server', aliases=['users'])
+@commands.guild_only()
 async def list_users(ctx):
-    if is_dm(ctx):
-        await ctx.send('cant call this command in DM')
-        return
     url = ENDPOINTS[ENVIRONMENT]['host']+ENDPOINTS[ENVIRONMENT]['finhub_list_users']
     headers = {"guildId": str(ctx.message.guild.id)}
     r = await call_get_request(ctx, url, headers=headers)
