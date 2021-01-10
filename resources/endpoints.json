@@ -2,7 +2,8 @@
   "dev": {
     "host": "http://localhost:8080",
     "finhub_test_status": "/testStatus",
-    "finhub_test_robinhood_status": "/testRobinhoodStatus"
+    "finhub_list_users": "/getCurUsersInServer",
+    "finhub_signup_user": "/discord/signUp"
   },
   "prod": {
     "finhub_health_status": "https://?"

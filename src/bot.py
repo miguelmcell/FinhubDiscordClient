@@ -47,7 +47,19 @@ async def call_get_request(ctx, url, params={}):
             print(e)
             await ctx.send('Unknown exception for API call request, check logs')
     return r
-    
+### Run get request while handling errors
+async def call_post_request(ctx, url, data={}):
+    r = None
+    try:
+        r = requests.post(url = url, json = data)
+    except Exception as e:
+        if 'Max retries exceeded with url' in str(e):
+            await ctx.send('Hello anyone there? 👀 👀 👀 [Unable to contact backend]')
+        else:
+            print(e)
+            await ctx.send('Unknown exception for API post request, check logs')
+    return r
+
 @bot.event
 async def on_ready():
     print(f'{bot.user.name} has connected to Discord!')
@@ -55,7 +67,7 @@ async def on_ready():
 @bot.command(name='health', help='Provides status of finhub backend')
 async def check_health(ctx):
     if is_dm(ctx):
-        await ctx.send('cant call function in DM')
+        await ctx.send('cant call this command in DM')
         return
     url = ENDPOINTS[ENVIRONMENT]['host']+ENDPOINTS[ENVIRONMENT]['finhub_test_status']
     r = await call_get_request(ctx, url)
@@ -67,8 +79,47 @@ async def check_health(ctx):
     else:
         await ctx.send('Unexpected response from finhub status')
 
-# async def check_health(ctx, a_number: int, another: int):
-#     # print(ctx)
-#     await ctx.send('hello!'+str(a_number+another))
+@bot.command(name='signUp', help='Signs up the user to the server\'s finhub group')
+async def signup_user(ctx):
+    if is_dm(ctx):
+        await ctx.send('cant call this command in DM')
+        return
+    url = ENDPOINTS[ENVIRONMENT]['host']+ENDPOINTS[ENVIRONMENT]['finhub_signup_user']
+    data = {}
+    # print(ctx.message.author.id)
+    # print(ctx.message.guild.id)
+    # print(ctx.message.guild.name)
+    data['discordId'] = ctx.message.author.id
+    data['guildId'] = ctx.message.guild.id
+    data['guildName'] = ctx.message.guild.name
+    r = await call_post_request(ctx, url, data)
+    if await handle_api_response(ctx, r) is None:
+        return
+    ## r should now be a valid response
+    if 'Existing user added to new finhub group' in r.content.decode('utf-8'):
+        print('Succesfully added {} '.format(ctx.message.author.name))
+        await ctx.send('Successfully added {} to **{}**\'s finhub group 🎉 💯 🗣️'.format(ctx.message.author.name, ctx.message.guild.name))
+    elif 'User already in given finhub group' in r.content.decode('utf-8'):
+        print('{} is already in **{}**\'s finhub group'.format(ctx.message.author.name, ctx.message.guild.name))
+        await ctx.send('{} is already in **{}**\'s finhub group 🤷'.format(ctx.message.author.name, ctx.message.guild.name))
+    elif 'OK' in r.content.decode('utf-8'):
+        print('Succesfully signed up {}'.format(ctx.message.author.name))
+        await ctx.send('Successfully signed up {} to **{}**\'s finhub group 🎉 💯 🗣️'.format(ctx.message.author.name, ctx.message.guild.name))
+    else:
+        print('Unkown response from signup: {}, {}'.format(r, r.content.decode('utf-8')))
+
+
+@bot.command(name='listUsers', help='Lists all active finhub users within server')
+async def list_users(ctx):
+    if is_dm(ctx):
+        await ctx.send('cant call this command in DM')
+        return
+    url = ENDPOINTS[ENVIRONMENT]['host']+ENDPOINTS[ENVIRONMENT]['finhub_list_users']
+    r = await call_get_request(ctx, url)
+    if await handle_api_response(ctx, r) is None:
+        return
+    ### r should now be a valid response
+    print('Success!', r.json())
+
 setup_init()
 bot.run(TOKEN)
