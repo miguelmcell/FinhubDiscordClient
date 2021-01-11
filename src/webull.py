@@ -70,7 +70,7 @@ class Webull(commands.Cog):
                 webull_account = broker
         if not found_webull:
             # tell them to add webull account first
-            await ctx.send('Pls add a webull account first before changing email 🙂')
+            await ctx.send('Add a webull account first before changing email 🙂')
         else:
             # change existing webull email
             pass
@@ -100,4 +100,10 @@ class Webull(commands.Cog):
             await ctx.send('Webull email must be setup before MFA code can be sent')
             return
 
-        await ctx.send('Webull MFA code has been send to {}'.format(webull_account['brokerUsername']))
+        url = self.ENDPOINTS[self.ENVIRONMENT]['host']+self.ENDPOINTS[self.ENVIRONMENT]['webull']['send_mfa']
+        data = {'discordId': ctx.message.author.id}
+        r = await call_post_request(ctx, url, data=data)
+        if await handle_api_response(ctx, r) is None:
+            return
+
+        await ctx.send('Webull MFA code has been sent to {}, use MFA code to connect to your webull account using `!connect`\nuse `help !connect` for more info'.format(webull_account['brokerUsername']))

@@ -73,13 +73,14 @@ async def signup_user(ctx):
     elif 'OK' in r.content.decode('utf-8'):
         print('Succesfully signed up {}'.format(ctx.message.author.name))
         await ctx.message.author.create_dm()
-        await ctx.message.author.dm_channel.send(f'Yo, if this is your first'\
-            ' time signing up for a finhub account type `!help` in this DM to'\
-            ' learn how to sync your brokers into your account.\nIf you\'ve'\
-            ' already configured your brokers for another discord server that'\
-            ' uses finhub then you\'re already set\n**I recommend deleteting'\
-            ' your sensitive broker credentials once your broker account'\
-            ' has synced**')
+        await ctx.message.author.dm_channel.send(f'Yo, If you\'ve'\
+        ' already configured your brokers for another discord server that'\
+        ' uses finhub then you\'re already set, otherwise to learn how to'\
+        ' sync your robinhood account, enter `!robinhoodSteps`, as for webull'\
+        ' enter `!webullSteps` or `!help addWebullBroker` for a walkthrough.'\
+        ' \n**Its recommended to deletete any sensitive broker credentials once'\
+        ' your broker accounts have been synced, your password will not be'\
+        ' stored in your finhub account**')
         await ctx.send('Successfully signed up {} to **{}**\'s finhub group 🎉 💯 🗣️\nI DMd you instructions on how to configure your brokers on your account'.format(ctx.message.author.name, ctx.message.guild.name))
     else:
         print('Unkown response from signup: {}, {}'.format(r, r.content.decode('utf-8')))
