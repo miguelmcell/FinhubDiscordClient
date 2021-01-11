@@ -14,18 +14,17 @@ ENVIRONMENT = os.getenv('ENVIRONMENT')
 class Brokers(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.bot.add_cog(Webull(self.bot, self))
         global ENDPOINTS
         with open(endpoints_path) as file:
             data = file.read()
         ENDPOINTS = json.loads(data)
+        self.bot.add_cog(Webull(self.bot, self, ENDPOINTS, ENVIRONMENT))
 
     @staticmethod
     async def getUser(ctx):
         url = ENDPOINTS[ENVIRONMENT]['host']+ENDPOINTS[ENVIRONMENT]['finhub_get_user']
         headers = {"discordId": str(ctx.message.author.id)}
         r = await call_get_request(ctx, url, headers=headers)
-        print('first print:', r)
         if await handle_api_response(ctx, r) is None:
             return
         if r.text == '':
