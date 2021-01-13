@@ -7,7 +7,8 @@
     "finhub_signup_user": "/discord/signUp",
     "webull": {
       "send_mfa": "/discord/webull/sendMfa",
-      "add_account": "/discord/webull/addAccount"
+      "add_account": "/discord/webull/addAccount",
+      "sync_webull": "/discord/webull/syncWebull"
     }
   },
   "prod": {
