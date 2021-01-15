@@ -23,9 +23,6 @@ class Webull(commands.Cog):
         if user is None:
             await ctx.send('Unable to find a finhub discord server associated with user')
             return
-        elif user['discordId'] != str(ctx.message.author.id):
-            await ctx.send('Request discordId does not match own userId')
-            return
         # TODO check if a webull broker already exists for this finhub account
         found_webull = False
         user_broker_accounts = user['brokers']
@@ -52,9 +49,6 @@ class Webull(commands.Cog):
         user = await self.Broker.getUser(ctx)
         if user is None:
             await ctx.send('Unable to find a finhub discord server associated with user')
-            return
-        elif user['discordId'] != str(ctx.message.author.id):
-            await ctx.send('Request discordId does not match own userId')
             return
 
         print(f'webull email is {webullEmail}')
@@ -86,9 +80,6 @@ class Webull(commands.Cog):
         if user is None:
             await ctx.send('Unable to find a finhub discord server associated with user')
             return
-        elif user['discordId'] != str(ctx.message.author.id):
-            await ctx.send('Request discordId does not match own userId')
-            return
         user_broker_accounts = user['brokers']
         is_valid_webull = False
         webull_account = {}
@@ -119,9 +110,6 @@ class Webull(commands.Cog):
         if user is None:
             await ctx.send('Unable to find a finhub discord server associated with user')
             return
-        elif user['discordId'] != str(ctx.message.author.id):
-            await ctx.send('Request discordId does not match own userId')
-            return
 
         user_broker_accounts = user['brokers']
         found_webull = False
@@ -142,3 +130,29 @@ class Webull(commands.Cog):
             return
 
         await ctx.send('Webull is now synced into your account!, run `!status` for an overview of your account status')
+
+    @commands.command(name='webull', \
+         help='Displays account status for webull')
+    @commands.dm_only()
+    async def webull(self, ctx):
+        # validate user has a finbhub account
+        user = await self.Broker.getUser(ctx)
+        if user is None:
+            await ctx.send('Unable to find a finhub discord server associated with user')
+            return
+
+        user_broker_accounts = user['brokers']
+        found_webull = False
+        webull_account = {}
+        for broker in user_broker_accounts:
+            if broker['name'] == 'webull':
+                found_webull = True
+                webull_account = broker
+        if not found_webull:
+            # tell them to add webull account first
+            await ctx.send('Webull Account Status:\n\t• No webull account has been added to your finhub profile')
+            return
+        
+        response = 'Webull Account:\n\t• Status: {}\n\t• Email: {}'.format(webull_account['status'], webull_account['brokerUsername'])
+
+        await ctx.send(response)

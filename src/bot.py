@@ -85,10 +85,34 @@ async def signup_user(ctx):
     else:
         print('Unkown response from signup: {}, {}'.format(r, r.content.decode('utf-8')))
 
+# TODO WIP
+@bot.command(name='showLeaderboard', help='Lists stats from active finhub users within server', aliases=['leaderboard', 'stats'])
+@commands.guild_only()
+async def show_leaderboard(ctx):
+    # TODO Make sure that the user calling this endpoint is part of the guild
+    url = ENDPOINTS[ENVIRONMENT]['host']+ENDPOINTS[ENVIRONMENT]['finhub_list_users']
+    headers = {"guildId": str(ctx.message.guild.id), "discordId": str(ctx.message.author.id)}
+    r = await call_get_request(ctx, url, headers=headers)
+    if await handle_api_response(ctx, r) is None:
+        return
+    ### r should now be a valid response
+    r = r.json()
+    if len(r) == 0:
+        await ctx.send('No active finhub members in **{}** 😔'.format(ctx.message.guild.name))
+        return
+    # Map IDs to user names
+    guild_members = {}
+    for member in  ctx.guild.members:
+        guild_members[str(member.id)] = member.name
+    response = 'Active finhub members in **{}**:'.format(ctx.message.guild.name)
+    for i in r:
+        response = response + '\n\t• {}'.format(guild_members[i.strip('\'')])
+    await ctx.send(response)
 
 @bot.command(name='listUsers', help='Lists all active finhub users within server', aliases=['users'])
 @commands.guild_only()
 async def list_users(ctx):
+    # TODO Make sure that the user calling this endpoint is part of the guild
     url = ENDPOINTS[ENVIRONMENT]['host']+ENDPOINTS[ENVIRONMENT]['finhub_list_users']
     headers = {"guildId": str(ctx.message.guild.id)}
     r = await call_get_request(ctx, url, headers=headers)
