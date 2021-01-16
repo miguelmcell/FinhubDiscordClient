@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+from datetime import datetime
 from apiUtil import call_get_request,call_post_request,handle_api_response
 
 class Webull(commands.Cog):
@@ -132,7 +133,7 @@ class Webull(commands.Cog):
         await ctx.send('Webull is now synced into your account!, run `!status` for an overview of your account status')
 
     @commands.command(name='webull', \
-         help='Displays account status for webull')
+         help='Displays account status for webull, if connected account will display performance')
     @commands.dm_only()
     async def webull(self, ctx):
         # validate user has a finbhub account
@@ -153,6 +154,25 @@ class Webull(commands.Cog):
             await ctx.send('Webull Account Status:\n\t• No webull account has been added to your finhub profile')
             return
         
-        response = 'Webull Account:\n\t• Status: {}\n\t• Email: {}'.format(webull_account['status'], webull_account['brokerUsername'])
+        webull_status = '{} ✅'.format(webull_account['status']) if webull_account['status']=='Connected' else '{}'.format(webull_account['status'])
+        
+        response = '**Webull Account**:\n\t• Status: {}\n\t• Email: {}'.format(webull_status, webull_account['brokerUsername'])
+        if webull_account['status']=='Connected':
+            expiration_time = datetime.strptime(webull_account['brokerTokenExpiration'], '%Y-%m-%dT%H:%M:%S.%f%z')
+            response += expiration_time.strftime('\n\t• Account Session Expiration: %d, %b %Y at %H:%M %Z ⏰')
+
+            performance_metrics = webull_account['performanceMetrics']
+            last_updated_time = datetime.strptime(performance_metrics['lastUpdate'], '%Y-%m-%dT%H:%M:%S.%f%z')
+            last_updated_response = last_updated_time.strftime('%d, %b %Y at %H:%M %Z')
+
+            performance_response = '\n**Performance**:\n\t• Last Time Updated: {}\n\t• Overall: {:0.2f}%\
+                \n\t• Daily: {:0.2f}%\n\t• Weekly: {:0.2f}%\n\t• Monthly: {:0.2f}%'\
+                .format(last_updated_response, performance_metrics['overall'], performance_metrics['daily'],\
+                performance_metrics['weekly'], performance_metrics['monthly'])
+            stock_positions_response = '\n**Positions**:' if len(webull_account['positions']) > 0 else '\n**No positions**'
+            for position in webull_account['positions']:
+                position['percentage'] = float(position['percentage'])
+                stock_positions_response += '\n\t• {}\n\t\t• Portfolio Percentage: {}%'.format(position['stockName'], position['percentage'])
+            response += performance_response + stock_positions_response
 
         await ctx.send(response)
