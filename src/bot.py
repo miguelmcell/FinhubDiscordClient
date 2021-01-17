@@ -85,12 +85,10 @@ async def signup_user(ctx):
     else:
         print('Unkown response from signup: {}, {}'.format(r, r.content.decode('utf-8')))
 
-# TODO ACTIVE IS NOT BEING SET ONCE A WEBULL ACCOUNT IS MADE
 @bot.command(name='stats', help='Lists stats from active finhub users within server', aliases=['leaderboard', 'showLeaderboard'])
 @commands.guild_only()
 async def show_leaderboard(ctx, time='daily'):
     # daily/today, all, overall, week/weekly, month/monthly
-    # TODO Make sure that the user calling this endpoint is part of the guild
     url = ENDPOINTS[ENVIRONMENT]['host']+ENDPOINTS[ENVIRONMENT]['finhub_leaderboard']
     headers = {"guildId": str(ctx.message.guild.id), "discordId": str(ctx.message.author.id)}
     r = await call_get_request(ctx, url, headers=headers)
@@ -128,7 +126,6 @@ async def show_leaderboard(ctx, time='daily'):
 @bot.command(name='listUsers', help='Lists all active finhub users within server', aliases=['users'])
 @commands.guild_only()
 async def list_users(ctx):
-    # TODO Make sure that the user calling this endpoint is part of the guild
     url = ENDPOINTS[ENVIRONMENT]['host']+ENDPOINTS[ENVIRONMENT]['finhub_list_users']
     headers = {"guildId": str(ctx.message.guild.id)}
     r = await call_get_request(ctx, url, headers=headers)
