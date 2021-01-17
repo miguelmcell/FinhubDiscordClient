@@ -81,21 +81,22 @@ async def signup_user(ctx):
         ' \n**Its recommended to deletete any sensitive broker credentials once'\
         ' your broker accounts have been synced, your password will not be'\
         ' stored in your finhub account**')
-        await ctx.send('Successfully signed up {} to **{}**\'s finhub group 🎉 💯 🗣️\nI DMd you instructions on how to configure your brokers on your account'.format(ctx.message.author.name, ctx.message.guild.name))
+        await ctx.send('Successfully signed up {} to **{}**\'s finhub group 🎉 💯 🗣️\nCheck DMs to configure your brokers for your account'.format(ctx.message.author.name, ctx.message.guild.name))
     else:
         print('Unkown response from signup: {}, {}'.format(r, r.content.decode('utf-8')))
 
-# TODO WIP
-@bot.command(name='showLeaderboard', help='Lists stats from active finhub users within server', aliases=['leaderboard', 'stats'])
+# TODO ACTIVE IS NOT BEING SET ONCE A WEBULL ACCOUNT IS MADE
+@bot.command(name='stats', help='Lists stats from active finhub users within server', aliases=['leaderboard', 'showLeaderboard'])
 @commands.guild_only()
-async def show_leaderboard(ctx):
+async def show_leaderboard(ctx, time='daily'):
+    # daily/today, all, overall, week/weekly, month/monthly
     # TODO Make sure that the user calling this endpoint is part of the guild
-    url = ENDPOINTS[ENVIRONMENT]['host']+ENDPOINTS[ENVIRONMENT]['finhub_list_users']
+    url = ENDPOINTS[ENVIRONMENT]['host']+ENDPOINTS[ENVIRONMENT]['finhub_leaderboard']
     headers = {"guildId": str(ctx.message.guild.id), "discordId": str(ctx.message.author.id)}
     r = await call_get_request(ctx, url, headers=headers)
     if await handle_api_response(ctx, r) is None:
         return
-    ### r should now be a valid response
+    # r should now be a valid response
     r = r.json()
     if len(r) == 0:
         await ctx.send('No active finhub members in **{}** 😔'.format(ctx.message.guild.name))
@@ -104,9 +105,24 @@ async def show_leaderboard(ctx):
     guild_members = {}
     for member in  ctx.guild.members:
         guild_members[str(member.id)] = member.name
-    response = 'Active finhub members in **{}**:'.format(ctx.message.guild.name)
-    for i in r:
-        response = response + '\n\t• {}'.format(guild_members[i.strip('\'')])
+    response = ''
+    for index, user in enumerate(r, start=1):
+        response += '{}. {}:'.format(index, guild_members[user['discordId']])
+        for broker in user['brokers']:
+            if time=='daily':
+                response += '\n\t• {} Daily: {:0.2f}%'.format(broker['name'].capitalize(), broker['performanceMetrics']['daily']) 
+            elif time=='all':
+                response += '\n\t• {}:'.format(broker['name'].capitalize()) 
+                response += '\n\t\t• Overall: {:0.2f}%'.format(broker['performanceMetrics']['overall'])
+                response += '\n\t\t• Daily: {:0.2f}%'.format(broker['performanceMetrics']['daily'])
+                response += '\n\t\t• Weekly: {:0.2f}%'.format(broker['performanceMetrics']['weekly'])
+                response += '\n\t\t• Monthly: {:0.2f}%'.format(broker['performanceMetrics']['monthly'])
+            elif time=='overall':
+                response += '\n\t• {}: {:0.2f}%'.format(broker['name'].capitalize(), broker['performanceMetrics']['overall']) 
+            elif time=='week' or time=='weekly':
+                response += '\n\t• {}: {:0.2f}%'.format(broker['name'].capitalize(), broker['performanceMetrics']['weekly']) 
+            elif time=='month' or time=='monthly':
+                response += '\n\t• {}: {:0.2f}%'.format(broker['name'].capitalize(), broker['performanceMetrics']['monthly']) 
     await ctx.send(response)
 
 @bot.command(name='listUsers', help='Lists all active finhub users within server', aliases=['users'])

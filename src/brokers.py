@@ -3,6 +3,7 @@ import os
 import json
 from discord.ext import commands
 from webull import Webull
+from robinhood import Robinhood
 from apiUtil import call_get_request,call_post_request,handle_api_response
 from dotenv import load_dotenv
 
@@ -19,6 +20,7 @@ class Brokers(commands.Cog):
             data = file.read()
         ENDPOINTS = json.loads(data)
         self.bot.add_cog(Webull(self.bot, self, ENDPOINTS, ENVIRONMENT))
+        self.bot.add_cog(Robinhood(self.bot, self, ENDPOINTS, ENVIRONMENT))
 
     @staticmethod
     async def getUser(ctx):

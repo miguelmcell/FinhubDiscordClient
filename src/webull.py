@@ -10,21 +10,20 @@ class Webull(commands.Cog):
         self.ENDPOINTS = ENDPOINTS
         self.ENVIRONMENT = ENVIRONMENT
 
-    @commands.command(name='addWebullBroker', \
+    @commands.command(name='addWebull', \
          help='Adds a user\'s webull account to their finhub account',
-         aliases=['addWebull'])
+         aliases=['addWebullBroker'])
     @commands.dm_only()
-    async def addWebullBroker(self, ctx, webullEmail=None):
+    async def addWebull(self, ctx, webullEmail=None):
         if webullEmail is None:
             await ctx.send('Add your webull email after the command,'\
-            ' ex: `!addWebullBroker webull@gmail.com`')
+            ' ex: `!addWebull webull@gmail.com`')
             return
         # validate user has a finbhub account
         user = await self.Broker.getUser(ctx)
         if user is None:
             await ctx.send('Unable to find a finhub discord server associated with user')
             return
-        # TODO check if a webull broker already exists for this finhub account
         found_webull = False
         user_broker_accounts = user['brokers']
         for broker in user_broker_accounts:
@@ -32,7 +31,7 @@ class Webull(commands.Cog):
                 found_webull = True
         if found_webull:
             await ctx.send('User already has a webull account added to finhub,'\
-            ' enter !webull to look at your webull account status')
+            ' enter `!webull` to look at your webull account status')
             return
         url = self.ENDPOINTS[self.ENVIRONMENT]['host']+self.ENDPOINTS[self.ENVIRONMENT]['webull']['add_account']
         data = {'discordId': ctx.message.author.id, 'email': webullEmail}
@@ -65,7 +64,7 @@ class Webull(commands.Cog):
                 webull_account = broker
         if not found_webull:
             # tell them to add webull account first
-            await ctx.send('Run `!addWebullBroker` before changing email 🙂')
+            await ctx.send('Run `!addWebull` before changing email 🙂')
         else:
             # change existing webull email
             pass
@@ -98,8 +97,8 @@ class Webull(commands.Cog):
         if await handle_api_response(ctx, r) is None:
             return
 
-        await ctx.send('Webull MFA code has been sent to {}, use MFA code to connect to your webull account using `!syncWebull`\nuse `help !connect` for more info'.format(webull_account['brokerUsername']))
-
+        await ctx.send('Webull MFA code has been sent to {}, use MFA code to connect to your webull account using `!syncWebull`\nuse `help !syncWebull` for more info'.format(webull_account['brokerUsername']))
+    # TODO add overall for both webull and robinhood
     @commands.command(name='syncWebull', \
          help='Connects to the user\'s webull account to sync performance and holdings',
          aliases=['syncwebull'])
@@ -121,7 +120,7 @@ class Webull(commands.Cog):
                 webull_account = broker
         if not found_webull:
             # tell them to add webull account first
-            await ctx.send('Run `!addWebullBroker` before connecting to account 🙂')
+            await ctx.send('Run `!addWebull` before connecting to account 🙂')
             return
         # call sync endpoint
         url = self.ENDPOINTS[self.ENVIRONMENT]['host']+self.ENDPOINTS[self.ENVIRONMENT]['webull']['sync_webull']
@@ -130,7 +129,39 @@ class Webull(commands.Cog):
         if await handle_api_response(ctx, r) is None:
             return
 
-        await ctx.send('Webull is now synced into your account!, run `!status` for an overview of your account status')
+        await ctx.send('Webull is now synced into your account!, run `!webull` for an overview of your account status')
+
+    @commands.command(name='updateWebull', \
+         help='Manually updates user\'s webull account metrics, otherwise metrics will update every hour',
+         aliases=['updateW'])
+    @commands.dm_only()
+    async def updateWebull(self, ctx):
+        # validate user has a finbhub account
+        user = await self.Broker.getUser(ctx)
+        if user is None:
+            await ctx.send('Unable to find a finhub discord server associated with user')
+            return
+
+        user_broker_accounts = user['brokers']
+        found_webull = False
+        webull_account = {}
+        for broker in user_broker_accounts:
+            if broker['name'] == 'webull':
+                found_webull = True
+                webull_account = broker
+        if not found_webull:
+            # tell them to add webull account first
+            await ctx.send('Run `!addWebull` before connecting to account 🙂')
+            return
+        # TODO CHECK IF EXPIRATION HAS PAST, IF SO THEN SET ACCOUNT TO INACTIVE AND TELL USER
+        # call update endpoint
+        url = self.ENDPOINTS[self.ENVIRONMENT]['host']+self.ENDPOINTS[self.ENVIRONMENT]['webull']['update_metrics']
+        data = {'discordId': ctx.message.author.id}
+        r = await call_post_request(ctx, url, data=data)
+        if await handle_api_response(ctx, r) is None:
+            return
+
+        await ctx.send('Update Successful, run `!webull` to look at your updated status')
 
     @commands.command(name='webull', \
          help='Displays account status for webull, if connected account will display performance')
@@ -151,13 +182,13 @@ class Webull(commands.Cog):
                 webull_account = broker
         if not found_webull:
             # tell them to add webull account first
-            await ctx.send('Webull Account Status:\n\t• No webull account has been added to your finhub profile')
+            await ctx.send('Webull Account Status:\n\t• No webull account has been added to your finhub profile, enter `!help addWebull` to more info')
             return
         
-        webull_status = '{} ✅'.format(webull_account['status']) if webull_account['status']=='Connected' else '{}'.format(webull_account['status'])
+        webull_status = '{} ✅'.format(webull_account['status']) if webull_account['status']=='active' else '{}'.format(webull_account['status'])
         
         response = '**Webull Account**:\n\t• Status: {}\n\t• Email: {}'.format(webull_status, webull_account['brokerUsername'])
-        if webull_account['status']=='Connected':
+        if webull_account['status']=='active':
             expiration_time = datetime.strptime(webull_account['brokerTokenExpiration'], '%Y-%m-%dT%H:%M:%S.%f%z')
             response += expiration_time.strftime('\n\t• Account Session Expiration: %d, %b %Y at %H:%M %Z ⏰')
 
