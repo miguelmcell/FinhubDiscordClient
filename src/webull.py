@@ -98,7 +98,7 @@ class Webull(commands.Cog):
             return
 
         await ctx.send('Webull MFA code has been sent to {}, use MFA code to connect to your webull account using `!syncWebull`\nuse `help !syncWebull` for more info'.format(webull_account['brokerUsername']))
-    # TODO add overall for both webull and robinhood
+    
     @commands.command(name='syncWebull', \
          help='Connects to the user\'s webull account to sync performance and holdings',
          aliases=['syncwebull'])

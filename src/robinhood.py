@@ -40,6 +40,35 @@ class Robinhood(commands.Cog):
             return
         await ctx.send('Succesfully registered robinhood acount, enter `!robinhood` to look at your robinhood account status')
 
+    @commands.command(name='syncRobinhood', \
+         help='Connects to the user\'s robinhood account to fetch a new logged in session',
+         aliases=['syncrobinhood'])
+    @commands.dm_only()
+    async def syncWebull(self, ctx, password, mfa_code):
+        user = await self.Broker.getUser(ctx)
+        if user is None:
+            await ctx.send('Unable to find a finhub discord server associated with user')
+            return
+
+        user_broker_accounts = user['brokers']
+        found_robinhood = False
+        robinhood_account = {}
+        for broker in user_broker_accounts:
+            if broker['name'] == 'robinhood':
+                found_robinhood = True
+                robinhood_account = broker
+        if not found_robinhood:
+            await ctx.send('Run `!addRobinhood` before connecting to account 🙂')
+            return
+        # call sync endpoint
+        url = self.ENDPOINTS[self.ENVIRONMENT]['host']+self.ENDPOINTS[self.ENVIRONMENT]['robinhood']['sync_robinhood']
+        data = {'discordId': ctx.message.author.id, 'username': robinhood_account['brokerUsername'], 'password': password, 'mfaCode': mfa_code}
+        r = await call_post_request(ctx, url, data=data)
+        if await handle_api_response(ctx, r) is None:
+            return
+
+        await ctx.send('Robinhood is now synced into your account!, run `!robinhood` for an overview of your account status')
+
     @commands.command(name='changeRobinhoodUsername', \
          help='Sets the user\'s robinhood username to their finhub account',
          aliases=['setRobinhoodUsername'])
