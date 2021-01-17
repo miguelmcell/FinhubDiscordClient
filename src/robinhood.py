@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 from datetime import datetime
+import constants as consts
 from apiUtil import call_get_request,call_post_request,handle_api_response
 
 class Robinhood(commands.Cog):
@@ -22,7 +23,7 @@ class Robinhood(commands.Cog):
         # validate user has a finbhub account
         user = await self.Broker.getUser(ctx)
         if user is None:
-            await ctx.send('Unable to find a finhub discord server associated with user')
+            await ctx.send(consts.FINHUB_ACCT_NOT_FOUND_FOR_DISCORD_ID)
             return
         found_robinhood = False
         user_broker_accounts = user['brokers']
@@ -47,7 +48,7 @@ class Robinhood(commands.Cog):
     async def syncWebull(self, ctx, password, mfa_code):
         user = await self.Broker.getUser(ctx)
         if user is None:
-            await ctx.send('Unable to find a finhub discord server associated with user')
+            await ctx.send(consts.FINHUB_ACCT_NOT_FOUND_FOR_DISCORD_ID)
             return
 
         user_broker_accounts = user['brokers']
@@ -77,7 +78,7 @@ class Robinhood(commands.Cog):
         # validate user has a finbhub account
         user = await self.Broker.getUser(ctx)
         if user is None:
-            await ctx.send('Unable to find a finhub discord server associated with user')
+            await ctx.send(consts.FINHUB_ACCT_NOT_FOUND_FOR_DISCORD_ID)
             return
 
         # check if broker account exists for user,
@@ -105,7 +106,7 @@ class Robinhood(commands.Cog):
         # validate user has a finbhub account
         user = await self.Broker.getUser(ctx)
         if user is None:
-            await ctx.send('Unable to find a finhub discord server associated with user')
+            await ctx.send(consts.FINHUB_ACCT_NOT_FOUND_FOR_DISCORD_ID)
             return
 
         user_broker_accounts = user['brokers']
@@ -142,7 +143,7 @@ class Robinhood(commands.Cog):
         # validate user has a finbhub account
         user = await self.Broker.getUser(ctx)
         if user is None:
-            await ctx.send('Unable to find a finhub discord server associated with user')
+            await ctx.send(consts.FINHUB_ACCT_NOT_FOUND_FOR_DISCORD_ID)
             return
 
         user_broker_accounts = user['brokers']

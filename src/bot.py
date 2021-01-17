@@ -77,7 +77,7 @@ async def signup_user(ctx):
         ' already configured your brokers for another discord server that'\
         ' uses finhub then you\'re already set, otherwise to learn how to'\
         ' sync your robinhood account, enter `!robinhoodSteps`, as for webull'\
-        ' enter `!webullSteps` or `!help addWebullBroker` for a walkthrough.'\
+        ' enter `!webullSteps` or `!help addWebull` for a walkthrough.'\
         ' \n**Its recommended to deletete any sensitive broker credentials once'\
         ' your broker accounts have been synced, your password will not be'\
         ' stored in your finhub account**')

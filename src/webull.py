@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 from datetime import datetime
+import constants as consts
 from apiUtil import call_get_request,call_post_request,handle_api_response
 
 class Webull(commands.Cog):
@@ -22,7 +23,7 @@ class Webull(commands.Cog):
         # validate user has a finbhub account
         user = await self.Broker.getUser(ctx)
         if user is None:
-            await ctx.send('Unable to find a finhub discord server associated with user')
+            await ctx.send(consts.FINHUB_ACCT_NOT_FOUND_FOR_DISCORD_ID)
             return
         found_webull = False
         user_broker_accounts = user['brokers']
@@ -48,7 +49,7 @@ class Webull(commands.Cog):
         # validate user has a finbhub account
         user = await self.Broker.getUser(ctx)
         if user is None:
-            await ctx.send('Unable to find a finhub discord server associated with user')
+            await ctx.send(consts.FINHUB_ACCT_NOT_FOUND_FOR_DISCORD_ID)
             return
 
         print(f'webull email is {webullEmail}')
@@ -78,7 +79,7 @@ class Webull(commands.Cog):
         # validate user has a finbhub account AND that he setup his webull email
         user = await self.Broker.getUser(ctx)
         if user is None:
-            await ctx.send('Unable to find a finhub discord server associated with user')
+            await ctx.send(consts.FINHUB_ACCT_NOT_FOUND_FOR_DISCORD_ID)
             return
         user_broker_accounts = user['brokers']
         is_valid_webull = False
@@ -108,7 +109,7 @@ class Webull(commands.Cog):
         # print("PASSWORD IS:", password.strip('"'))
         user = await self.Broker.getUser(ctx)
         if user is None:
-            await ctx.send('Unable to find a finhub discord server associated with user')
+            await ctx.send(consts.FINHUB_ACCT_NOT_FOUND_FOR_DISCORD_ID)
             return
 
         user_broker_accounts = user['brokers']
@@ -139,7 +140,7 @@ class Webull(commands.Cog):
         # validate user has a finbhub account
         user = await self.Broker.getUser(ctx)
         if user is None:
-            await ctx.send('Unable to find a finhub discord server associated with user')
+            await ctx.send(consts.FINHUB_ACCT_NOT_FOUND_FOR_DISCORD_ID)
             return
 
         user_broker_accounts = user['brokers']
@@ -170,7 +171,7 @@ class Webull(commands.Cog):
         # validate user has a finbhub account
         user = await self.Broker.getUser(ctx)
         if user is None:
-            await ctx.send('Unable to find a finhub discord server associated with user')
+            await ctx.send(consts.FINHUB_ACCT_NOT_FOUND_FOR_DISCORD_ID)
             return
 
         user_broker_accounts = user['brokers']

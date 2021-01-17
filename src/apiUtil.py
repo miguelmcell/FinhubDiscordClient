@@ -36,4 +36,5 @@ async def handle_api_response(ctx, r):
     else:
         print(r)
         print('Other: response code:', r.status_code)
+        await ctx.send('{}'.format(r.text))
     return None
