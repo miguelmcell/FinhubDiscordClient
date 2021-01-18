@@ -85,7 +85,7 @@ async def signup_user(ctx):
     else:
         print('Unkown response from signup: {}, {}'.format(r, r.content.decode('utf-8')))
 
-@bot.command(name='stats', help='Lists stats from active finhub users within server', aliases=['leaderboard', 'showLeaderboard'])
+@bot.command(name='leaderboard', help='Lists stats from active finhub users within server', aliases=['stats', 'showLeaderboard'])
 @commands.guild_only()
 async def show_leaderboard(ctx, time='daily'):
     # daily/today, all, overall, week/weekly, month/monthly
@@ -105,22 +105,30 @@ async def show_leaderboard(ctx, time='daily'):
         guild_members[str(member.id)] = member.name
     response = ''
     for index, user in enumerate(r, start=1):
-        response += '{}. {}:'.format(index, guild_members[user['discordId']])
+        response += '• {}:'.format(guild_members[user['discordId']])
         for broker in user['brokers']:
             if time=='daily':
-                response += '\n\t• {} Daily: {:0.2f}%'.format(broker['name'].capitalize(), broker['performanceMetrics']['daily']) 
+                indicator = '🟢' if float(broker['performanceMetrics']['daily'])>0 else '🔴'
+                response += '\n\t{} {} Daily: {:0.2f}%'.format(indicator, broker['name'].capitalize(), broker['performanceMetrics']['daily']) 
             elif time=='all':
-                response += '\n\t• {}:'.format(broker['name'].capitalize()) 
-                response += '\n\t\t• Overall: {:0.2f}%'.format(broker['performanceMetrics']['overall'])
-                response += '\n\t\t• Daily: {:0.2f}%'.format(broker['performanceMetrics']['daily'])
-                response += '\n\t\t• Weekly: {:0.2f}%'.format(broker['performanceMetrics']['weekly'])
-                response += '\n\t\t• Monthly: {:0.2f}%'.format(broker['performanceMetrics']['monthly'])
+                response += '\n\t{}:'.format(broker['name'].capitalize()) 
+                indicator = '🟢' if float(broker['performanceMetrics']['overall'])>0 else '🔴'
+                response += '\n\t\t{} Overall: {:0.2f}%'.format(indicator, broker['performanceMetrics']['overall'])
+                indicator = '🟢' if float(broker['performanceMetrics']['daily'])>0 else '🔴'
+                response += '\n\t\t{} Daily: {:0.2f}%'.format(indicator, broker['performanceMetrics']['daily'])
+                indicator = '🟢' if float(broker['performanceMetrics']['weekly'])>0 else '🔴'
+                response += '\n\t\t{} Weekly: {:0.2f}%'.format(indicator, broker['performanceMetrics']['weekly'], indicator)
+                indicator = '🟢' if float(broker['performanceMetrics']['monthly'])>0 else '🔴'
+                response += '\n\t\t{} Monthly: {:0.2f}%'.format(indicator, broker['performanceMetrics']['monthly'])
             elif time=='overall':
-                response += '\n\t• {}: {:0.2f}%'.format(broker['name'].capitalize(), broker['performanceMetrics']['overall']) 
+                indicator = '🟢' if float(broker['performanceMetrics']['overall'])>0 else '🔴'
+                response += '\n\t{} {} Overall: {:0.2f}%'.format(indicator, broker['name'].capitalize(), broker['performanceMetrics']['overall']) 
             elif time=='week' or time=='weekly':
-                response += '\n\t• {}: {:0.2f}%'.format(broker['name'].capitalize(), broker['performanceMetrics']['weekly']) 
+                indicator = '🟢' if float(broker['performanceMetrics']['weekly'])>0 else '🔴'
+                response += '\n\t{} {} Weekly: {:0.2f}%'.format(indicator, broker['name'].capitalize(), broker['performanceMetrics']['weekly']) 
             elif time=='month' or time=='monthly':
-                response += '\n\t• {}: {:0.2f}%'.format(broker['name'].capitalize(), broker['performanceMetrics']['monthly']) 
+                indicator = '🟢' if float(broker['performanceMetrics']['monthly'])>0 else '🔴'
+                response += '\n\t{} {} Monthly: {:0.2f}%'.format(indicator, broker['name'].capitalize(), broker['performanceMetrics']['monthly']) 
     await ctx.send(response)
 
 @bot.command(name='listUsers', help='Lists all active finhub users within server', aliases=['users'])
