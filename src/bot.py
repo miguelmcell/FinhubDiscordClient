@@ -1,6 +1,6 @@
 import os
 import json
-from discord.ext import commands
+from discord.ext import tasks, commands
 from dotenv import load_dotenv
 import discord
 from brokers import Brokers
@@ -37,6 +37,7 @@ def is_dm(ctx):
 @bot.event
 async def on_ready():
     print(f'{bot.user.name} has connected to Discord!')
+    # market_close_status.start()
 
 @bot.command(name='health', help='Provides status of finhub backend')
 @commands.guild_only()
@@ -85,12 +86,17 @@ async def signup_user(ctx):
     else:
         print('Unkown response from signup: {}, {}'.format(r, r.content.decode('utf-8')))
 
+# @tasks.loop(seconds=60.0)
+# async def market_close_status():
+    # await bot.get_guild(<ID not a string>).system_channel.send('')
+
 @bot.command(name='leaderboard', help='Lists stats from active finhub users within server', aliases=['stats', 'showLeaderboard'])
 @commands.guild_only()
 async def show_leaderboard(ctx, time='daily'):
     # daily/today, all, overall, week/weekly, month/monthly
+    print(ctx.message.channel.id)
     url = ENDPOINTS[ENVIRONMENT]['host']+ENDPOINTS[ENVIRONMENT]['finhub_leaderboard']
-    headers = {"guildId": str(ctx.message.guild.id), "discordId": str(ctx.message.author.id)}
+    headers = {"guildId": str(ctx.message.guild.id)}
     r = await call_get_request(ctx, url, headers=headers)
     if await handle_api_response(ctx, r) is None:
         return
