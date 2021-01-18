@@ -97,7 +97,7 @@ class Robinhood(commands.Cog):
         else:
             # change existing webull email
             pass
-    # TODO create syncRobinhood function for when accounts expire
+
     @commands.command(name='updateRobinhood', \
          help='Manually updates user\'s robinhood account metrics, otherwise metrics will update every hour',
          aliases=['updateR'])
@@ -120,10 +120,9 @@ class Robinhood(commands.Cog):
             # tell them to add webull account first
             await ctx.send('Run `!addRobinhood` before connecting to account 🙂')
             return
-        # TODO CHECK IF EXPIRATION HAS PAST, IF SO THEN SET ACCOUNT TO INACTIVE AND TELL USER
+
         expiration_date = datetime.strptime(robinhood_account['brokerTokenExpiration'], '%Y-%m-%dT%H:%M:%S.%f%z')
         if expiration_date.date() < datetime.now().date():
-            # TODO send API call to change status to inactive
             await ctx.send('Robinhood account session has ended, run `!syncRobinhood` to renew connection')
             return
 

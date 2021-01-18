@@ -154,7 +154,6 @@ class Webull(commands.Cog):
             # tell them to add webull account first
             await ctx.send('Run `!addWebull` before connecting to account 🙂')
             return
-        # TODO CHECK IF EXPIRATION HAS PAST, IF SO THEN SET ACCOUNT TO INACTIVE AND TELL USER
         # call update endpoint
         url = self.ENDPOINTS[self.ENVIRONMENT]['host']+self.ENDPOINTS[self.ENVIRONMENT]['webull']['update_metrics']
         data = {'discordId': ctx.message.author.id}
