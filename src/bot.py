@@ -1,10 +1,13 @@
+from datetime import datetime
 import os
 import json
 from discord.ext import tasks, commands
 from dotenv import load_dotenv
 import discord
 from brokers import Brokers
+from dateutil import parser, tz
 from apiUtil import call_get_request,call_post_request,handle_api_response
+
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
@@ -89,8 +92,35 @@ async def signup_user(ctx):
 # @tasks.loop(seconds=60.0)
 # async def market_close_status():
     # await bot.get_guild(<ID not a string>).system_channel.send('')
+@bot.command(name='positions', help='Lists stats from active finhub users within server', aliases=['pos'])
+@commands.guild_only()
+async def show_positions(ctx):
+    url = ENDPOINTS[ENVIRONMENT]['host']+ENDPOINTS[ENVIRONMENT]['finhub_leaderboard']
+    headers = {"guildId": str(ctx.message.guild.id)}
+    r = await call_get_request(ctx, url, headers=headers)
+    if await handle_api_response(ctx, r) is None:
+        return
+    # r should now be a valid response
+    r = r.json()
+    if len(r) == 0:
+        await ctx.send('No active finhub members in **{}** 😔'.format(ctx.message.guild.name))
+        return
+    # Map IDs to user names
+    guild_members = {}
+    for member in  ctx.guild.members:
+        guild_members[str(member.id)] = member.name
+    response = ''
+    for index, user in enumerate(r, start=1):
+        if len(user['brokers']) == 0:
+            continue
+        response += '\n• **{}**:'.format(guild_members[user['discordId']])
+        for broker in user['brokers']:
+            response += '\n\t• {}:'.format(broker['name'].capitalize())
+            for position in broker['positions']:
+                response += '\n\t\t• {}: {:0.2f}%'.format(position['stockName'], float(position['percentage'])) 
+    await ctx.send(response)
 
-@bot.command(name='leaderboard', help='Lists stats from active finhub users within server', aliases=['stats', 'showLeaderboard'])
+@bot.command(name='leaderboard', help='Lists stats from active finhub users within server', aliases=['stats', 'showLeaderboard', 's'])
 @commands.guild_only()
 async def show_leaderboard(ctx, time='daily'):
     # daily/today, all, overall, week/weekly, month/monthly
@@ -111,19 +141,24 @@ async def show_leaderboard(ctx, time='daily'):
         guild_members[str(member.id)] = member.name
     response = ''
     for index, user in enumerate(r, start=1):
-        response += '• {}:'.format(guild_members[user['discordId']])
+        if len(user['brokers']) == 0:
+            continue
+        response += '\n• **{}**:'.format(guild_members[user['discordId']])
         for broker in user['brokers']:
+            last_update = parser.isoparse(broker['performanceMetrics']['lastUpdate'])
+            to_zone = tz.tzlocal()
+            last_update = last_update.astimezone(to_zone)
             if time=='daily':
                 indicator = '🟢' if float(broker['performanceMetrics']['daily'])>0 else '🔴'
-                response += '\n\t{} {} Daily: {:0.2f}%'.format(indicator, broker['name'].capitalize(), broker['performanceMetrics']['daily']) 
+                response += '\n\t• {} (updated: *{}*)\n\t\t{} Daily: {:0.2f}%'.format(broker['name'].capitalize(), last_update.strftime('%I:%M%p %b,%d'), indicator, broker['performanceMetrics']['daily']) 
             elif time=='all':
-                response += '\n\t{}:'.format(broker['name'].capitalize()) 
+                response += '\n\t{} (updated: *{}*)'.format(broker['name'].capitalize(), last_update.strftime('%I:%M%p %b,%d')) 
                 indicator = '🟢' if float(broker['performanceMetrics']['overall'])>0 else '🔴'
                 response += '\n\t\t{} Overall: {:0.2f}%'.format(indicator, broker['performanceMetrics']['overall'])
                 indicator = '🟢' if float(broker['performanceMetrics']['daily'])>0 else '🔴'
                 response += '\n\t\t{} Daily: {:0.2f}%'.format(indicator, broker['performanceMetrics']['daily'])
                 indicator = '🟢' if float(broker['performanceMetrics']['weekly'])>0 else '🔴'
-                response += '\n\t\t{} Weekly: {:0.2f}%'.format(indicator, broker['performanceMetrics']['weekly'], indicator)
+                response += '\n\t\t{} Weekly: {:0.2f}%'.format(indicator, broker['performanceMetrics']['weekly'])
                 indicator = '🟢' if float(broker['performanceMetrics']['monthly'])>0 else '🔴'
                 response += '\n\t\t{} Monthly: {:0.2f}%'.format(indicator, broker['performanceMetrics']['monthly'])
             elif time=='overall':
