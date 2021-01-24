@@ -124,7 +124,6 @@ async def show_positions(ctx):
 @commands.guild_only()
 async def show_leaderboard(ctx, time='daily'):
     # daily/today, all, overall, week/weekly, month/monthly
-    print(ctx.message.channel.id)
     url = ENDPOINTS[ENVIRONMENT]['host']+ENDPOINTS[ENVIRONMENT]['finhub_leaderboard']
     headers = {"guildId": str(ctx.message.guild.id)}
     r = await call_get_request(ctx, url, headers=headers)
