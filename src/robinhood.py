@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 from datetime import datetime
+import dateutil.parser
 import constants as consts
 from apiUtil import call_get_request,call_post_request,handle_api_response
 
@@ -161,11 +162,12 @@ class Robinhood(commands.Cog):
         
         response = '**Robinhood Account**:\n\t• Status: {}\n\t• Email: {}'.format(robinhood_status, robinhood_account['brokerUsername'])
         if robinhood_account['status']=='active':
-            expiration_time = datetime.strptime(robinhood_account['brokerTokenExpiration'], '%Y-%m-%dT%H:%M:%S.%f%z')
-            response += expiration_time.strftime('\n\t• Account Session Expiration: %d, %b %Y at %H:%M %Z ⏰')
+            expiration_time = dateutil.parser.parse(robinhood_account['brokerTokenExpiration'])
+            response += expiration_time.strftime('\n\t• Account Session Expiration: %d, %b %Y at %H:%M %Z ')+'⏰'
 
             performance_metrics = robinhood_account['performanceMetrics']
-            last_updated_time = datetime.strptime(performance_metrics['lastUpdate'], '%Y-%m-%dT%H:%M:%S.%f%z')
+            last_updated_time = dateutil.parser.parse(performance_metrics['lastUpdate'])
+            # last_updated_time = datetime.strptime(performance_metrics['lastUpdate'], '%Y-%m-%dT%H:%M:%S.%f%z')
             last_updated_response = last_updated_time.strftime('%d, %b %Y at %H:%M %Z')
 
             performance_response = '\n**Performance**:\n\t• Last Time Updated: {}\n\t• Overall: {:0.2f}%\

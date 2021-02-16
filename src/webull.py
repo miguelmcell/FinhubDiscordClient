@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 from datetime import datetime
 import constants as consts
+import dateutil.parser
 from apiUtil import call_get_request,call_post_request,handle_api_response
 
 class Webull(commands.Cog):
@@ -189,8 +190,10 @@ class Webull(commands.Cog):
         
         response = '**Webull Account**:\n\t• Status: {}\n\t• Email: {}'.format(webull_status, webull_account['brokerUsername'])
         if webull_account['status']=='active':
-            expiration_time = datetime.strptime(webull_account['brokerTokenExpiration'], '%Y-%m-%dT%H:%M:%S.%f%z')
-            response += expiration_time.strftime('\n\t• Account Session Expiration: %d, %b %Y at %H:%M %Z ⏰')
+            # expiration_time = datetime.strptime(webull_account['brokerTokenExpiration'], '%Y-%m-%dT%H:%M:%S.%f%z')
+            # response += expiration_time.strftime('\n\t• Account Session Expiration: %d, %b %Y at %H:%M %Z ⏰')
+            expiration_time = dateutil.parser.parse(webull_account['brokerTokenExpiration'])
+            response += expiration_time.strftime('\n\t• Account Session Expiration: %d, %b %Y at %H:%M %Z ')+'⏰'
 
             performance_metrics = webull_account['performanceMetrics']
             last_updated_time = datetime.strptime(performance_metrics['lastUpdate'], '%Y-%m-%dT%H:%M:%S.%f%z')
