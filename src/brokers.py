@@ -87,6 +87,8 @@ class Brokers(commands.Cog):
                     position['percentage'] = float(position['percentage'])
                     stock_positions_response += '\n\t• {}\n\t\t• Portfolio Percentage: {}%'.format(position['stockName'], position['percentage'])
                 response += performance_response + stock_positions_response
+            if found_webull:
+                response += '\n------------------------'
 
         if found_webull:
             webull_status = '{} ✅'.format(webull_account['status']) if webull_account['status']=='active' else '{}'.format(webull_account['status'])

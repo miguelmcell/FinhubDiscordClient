@@ -10,7 +10,8 @@
       "send_mfa": "/discord/webull/sendMfa",
       "add_account": "/discord/webull/addAccount",
       "sync_webull": "/discord/webull/syncWebull",
-      "update_metrics": "/discord/webull/updateMetrics"
+      "update_metrics": "/discord/webull/updateMetrics",
+      "refresh_webull": "/discord/webull/refreshToken"
     },
     "robinhood": {
       "add_account": "/discord/robinhood/addAccount",

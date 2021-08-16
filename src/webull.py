@@ -42,6 +42,34 @@ class Webull(commands.Cog):
             return
         await ctx.send('Succesfully registered webull acount, enter `!sendWebullMfaCode` to receive MFA needed to login')
 
+    @commands.command(name='refreshWebull', \
+         help='Connects to the user\'s robinhood account to fetch a new logged in session',
+         aliases=['refWebull'])
+    @commands.dm_only()
+    async def refreshWebullToken(self, ctx):
+        user = await self.Broker.getUser(ctx)
+        if user is None:
+            await ctx.send(consts.FINHUB_ACCT_NOT_FOUND_FOR_DISCORD_ID)
+            return
+
+        user_broker_accounts = user['brokers']
+        found_webull = False
+        for broker in user_broker_accounts:
+            if broker['name'] == 'webull':
+                found_webull = True
+        if not found_webull:
+            await ctx.send('Run `!addWebull` before refreshing this account 🙂')
+            return
+        # call sync endpoint
+        url = self.ENDPOINTS[self.ENVIRONMENT]['host']+self.ENDPOINTS[self.ENVIRONMENT]['webull']['refresh_webull']
+        data = {'discordId': ctx.message.author.id}
+        r = await call_post_request(ctx, url, data=data)
+        if await handle_api_response(ctx, r) is None:
+            return
+
+        await ctx.send('Webull account has been refreshed!')
+
+
     @commands.command(name='changeWebullEmail', \
          help='Sets the user\'s webull email to their finhub account',
          aliases=['setWebullEmail'])
@@ -99,7 +127,7 @@ class Webull(commands.Cog):
         if await handle_api_response(ctx, r) is None:
             return
 
-        await ctx.send('Webull MFA code has been sent to {}, use MFA code to connect to your webull account using `!syncWebull`\nuse `help !syncWebull` for more info'.format(webull_account['brokerUsername']))
+        await ctx.send('Webull MFA code has been sent to {}, use MFA code to connect to your webull account using `!syncWebull`\nuse `!help syncWebull` for more info'.format(webull_account['brokerUsername']))
     
     @commands.command(name='syncWebull', \
          help='Connects to the user\'s webull account to sync performance and holdings',
