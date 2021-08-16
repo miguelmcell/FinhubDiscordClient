@@ -71,6 +71,33 @@ class Robinhood(commands.Cog):
 
         await ctx.send('Robinhood is now synced into your account!, run `!robinhood` for an overview of your account status')
 
+    @commands.command(name='refreshRobinhood', \
+         help='Connects to the user\'s robinhood account to fetch a new logged in session',
+         aliases=['refRobinhood'])
+    @commands.dm_only()
+    async def refreshRobinhoodToken(self, ctx):
+        user = await self.Broker.getUser(ctx)
+        if user is None:
+            await ctx.send(consts.FINHUB_ACCT_NOT_FOUND_FOR_DISCORD_ID)
+            return
+
+        user_broker_accounts = user['brokers']
+        found_robinhood = False
+        for broker in user_broker_accounts:
+            if broker['name'] == 'robinhood':
+                found_robinhood = True
+        if not found_robinhood:
+            await ctx.send('Run `!addRobinhood` before refreshing this account 🙂')
+            return
+        # call sync endpoint
+        url = self.ENDPOINTS[self.ENVIRONMENT]['host']+self.ENDPOINTS[self.ENVIRONMENT]['robinhood']['refresh_robinhood']
+        data = {'discordId': ctx.message.author.id}
+        r = await call_post_request(ctx, url, data=data)
+        if await handle_api_response(ctx, r) is None:
+            return
+
+        await ctx.send('Robinhood account has been refreshed!')
+
     @commands.command(name='changeRobinhoodUsername', \
          help='Sets the user\'s robinhood username to their finhub account',
          aliases=['setRobinhoodUsername'])

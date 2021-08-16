@@ -15,7 +15,8 @@
     "robinhood": {
       "add_account": "/discord/robinhood/addAccount",
       "sync_robinhood": "/discord/robinhood/syncRobinhood",
-      "update_metrics": "/discord/robinhood/updateMetrics"
+      "update_metrics": "/discord/robinhood/updateMetrics",
+      "refresh_robinhood": "/discord/robinhood/refreshToken"
     }
   },
   "prod": {
